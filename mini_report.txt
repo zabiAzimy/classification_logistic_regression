@@ -1,0 +1,10 @@
+A small report after doind the logistic regression modelling:
+
+
+
+A logistic regression model was fitted to predict the probability of diabetes based on the
+variables BMI and Age. When predicting that a person is more likely to have diabetes than not
+have diabetes, the true positive rate was a disappointing 0.0191 (1.9%) (using the test
+data set). To identify more people that might have diabetes, the definition of “high risk”
+was changed to the probability of diabetes being 0.19 or more. This increased the
+sensitivity to 49%.

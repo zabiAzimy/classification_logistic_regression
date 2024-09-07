@@ -13,7 +13,7 @@ load("Diabetes.Rda")  # ??? stands for "path/Diabetes.Rda"
 # Answer parts (a) to (e) in the worksheet
 # a: How many observations are there?
 nrow(Diabetes)
-
+dim(Diabetes)
 # b: Obtain frequency table for diabetes status
 table(Diabetes$YN)
 
@@ -44,6 +44,7 @@ boxplot(data = Diabetes, Age ~ YN, col = "maroon")
 # Split the data into a train/test with 2000 observations in the test data set
 set.seed(50)
 n <- dim(Diabetes)[1]
+n
 testidx <- sample(n, 2000)
 test <- Diabetes[testidx, ]
 train <- Diabetes[-testidx, ]
@@ -59,7 +60,7 @@ BMI.grid
 glm.pred <- predict(glm.obj, 
                     newdata = data.frame(BMI = BMI.grid), 
                     type="response")
-plot(BMI.grid, glm.pred, type = "l", xlab="BMI", lwd = 2, col = "blue")
+plot(BMI.grid, glm.pred, type = "o", xlab="BMI", lwd = 2, col = "blue")
 
 # Question: does the logistic regression Diabetes = 'Yes' or Diabetes = 'No' as
 #           dependent variable?  -- Yes they are our dependent variables
@@ -86,7 +87,7 @@ tab[2, 2]/sum(tab[2, ]) # This is sensitivity
 # 04b: ROC curve and AUC ----
 roc.obj1  <-  roc(train$YN, fit1)
 plot(roc.obj1)   # R base graphics
-ggroc(roc.obj1)  # ggplot graphics
+ggroc(roc.obj1, lwd = 0.8, col = "darkgreen")  # ggplot graphics
 auc(roc.obj1)
 
 
@@ -129,9 +130,34 @@ test.roc.obj2  <-  roc(test$YN, ptest2)
 ggroc(list("BMI"=test.roc.obj1, "Age"=test.roc.obj2), lwd=0.8)
 auc(test.roc.obj2)
 
-# 05b: repeat analyis with a model containing both BMI and Age 
+# 05b: repeat analysis with a model containing both BMI and Age 
 glm.obj3 <- glm(YN ~ BMI + Age,data=Diabetes,family=binomial)
 summary(glm.obj3)
+
+ptest3 <- predict(glm.obj3, newdata = test, type = "response")
+test.roc.obj3 <- roc(test$YN, ptest3)
+ggroc(list("BMI"=test.roc.obj1,
+           "Age"=test.roc.obj2, "BMI & Age"= test.roc.obj3), lwd=0.8)
+
+# find the area under the curve for the third model
+auc(test.roc.obj3)
+alpha <- 0.19
+# let's also create the confusion matrix
+table(test$YN, ptest3 > alpha, dnn = c("observed", "predicted"))
+
+fit3 <- fitted(glm.obj3)
+
+# let's find the accuracy, sensitivity and specificity 
+alpha <- 0.19
+idx <- which.min(abs(test.roc.obj3$thresholds-alpha))
+idx
+
+test.roc.obj3$thresholds[idx]
+test.roc.obj3$sensitivities[idx]
+test.roc.obj3$specificities[idx]
+
+# construct the classification matrix again using the new alpha 0.19
+table(test$YN, ptest3 > alpha, dnn = c("observed", "predicted"))
 # Add further comments and code ....
 # Have fun!
 
